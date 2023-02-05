@@ -8,6 +8,7 @@ library(DT)
 library(shinyjs)
 library(RColorBrewer)
 library(wordcloud2)
+library(shinycustomloader)
 
 # Setting up Spotify client ID and client secret
 auth = function(id, secret) {
