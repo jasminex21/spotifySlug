@@ -1,5 +1,8 @@
 # spotifySlug
 
+<img src="https://user-images.githubusercontent.com/109494334/216837146-5f8c224d-9bfc-4586-9560-bb1f1b744841.png" width="150" height="150">
+This is Todd, the logo I created for Spotify Slug :)
+
 ### Inspiration
 I, like many fellow Spotify users, really enjoy looking at my own listening habits and statistics - I find it interesting to see how often I change my tastes. However, I got tired of the same old sites that I used to do this task, so I decided to harness the Spotify API and make my own web application...welcome to Spotify Slug, created by Spotify user bananaslug-10 with lots of love and hard work.
 
