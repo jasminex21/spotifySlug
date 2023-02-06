@@ -11,7 +11,7 @@ ui = navbarPage(title = span(div(img(src = "spotifySlugLogo.jpg",
                          fluidPage(
                            sidebarLayout(
                              sidebarPanel(h4(strong("First steps: Authentication")), 
-                                          p("To look at your personal Spotify data, you will need to log in to ", a(href = "https://developer.spotify.com/", "Spotify for Developers,"), 'go to "Dashboard," and click "Create an App." This will prompt you to give your app a name and a description. Once your app is set up, you will be able to access a "Client ID" and "Client Secret" code - this is what Spotify Slug needs for your authentication.'),
+                                          p("To look at your personal Spotify data, you will need to log in to ", a(href = "https://developer.spotify.com/", "Spotify for Developers,"), 'go to "Dashboard," and click "Create an App." This will prompt you to give your app a name and a description (the name and description of your app does not matter at all, it can be anything). Once your app is set up, you will be able to access a "Client ID" and "Client Secret" code - this is what Spotify Slug needs for your authentication.'),
                                           p('You will also have to go to "Edit Settings," and set "Redirect URIs" to the following: http://localhost:1410/'),
                                           p("Now you should be good to go!"),
                                           hr(),
