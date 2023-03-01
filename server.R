@@ -1,7 +1,7 @@
-server = function(input, output) {
+server = function(input, output, session) {
   # Panel 1 - Authentication
   observe({
-    if (input$id == "" | input$secret == "" | is.null(input$id) | is.null(input$secret)) {
+    if (input$authID == "" | input$secret == "" | is.null(input$authID) | is.null(input$secret)) {
       shinyjs::disable("authButton")
     }
     else {
@@ -9,25 +9,26 @@ server = function(input, output) {
     }
   })
   validate = eventReactive(input$authButton, {
-    req(input$id)
+    req(input$authID)
     req(input$secret)
-    auth(input$id, input$secret)
+    auth(input$authID, input$secret)
   })
   output$validate_message = renderText({ 
     validate()
   })
   # Panel 2 - Top Artists
-  topArtists = reactive({
+  topArtists = eventReactive(input$generateArts, {
     # obtaining top artists and placing them into a tibble
     artists = get_my_top_artists_or_tracks(type = "artists", 
                                            limit = 50, 
                                            time_range = input$artistsTime) %>%
       as_tibble() %>%
-      select(name, images, genres, popularity) %>%
+      select(name, images, genres, popularity, id) %>%
       rename(Artist = 1, 
              Image = 2, 
              Genres = 3, 
-             Popularity = 4) %>%
+             Popularity = 4, 
+             ID = 5) %>%
       # keeping only the images with a size of 160
       unnest(cols = c(Image))
     artists = artists[artists$height == 160,] %>%
@@ -35,6 +36,12 @@ server = function(input, output) {
     artists$Popularity = as.numeric(artists$Popularity)
     artists$Artist = paste0("<strong>", artists$Artist, "</strong>")
     artists$url = paste0('<img src="', artists$url, '"/img height=110 width = 110>')
+    # shinyjs::reset("exploreArt")
+    # tops = str_remove_all(topArtists()$Artist, "<.*?>") # removing HTML tags
+    # updateSelectInput(session, 
+    #                   "exploreArt", 
+    #                   choices = tops, # removing HTML tags 
+    #                   selected = tops[1])
     artists
   })
   output$artistsTable = renderDataTable({
@@ -55,8 +62,43 @@ server = function(input, output) {
                                nrow(cloudTable())), 
                size = 0.85)
   })
+    output$topArtistsUI = renderUI({
+      tops = str_remove_all(topArtists()$Artist, "<.*?>") # removing HTML tags
+      selectInput("exploreArt",
+                  label = "Select your top artist",
+                  choices = tops,
+                  selected = tops[1])
+  })
+  recArtists = eventReactive(input$recArtsButton, {
+    # req(input$artistsTime)
+    index = match(input$exploreArt, str_remove_all(topArtists()$Artist, "<.*?>"))
+    selectedID = topArtists()$ID[index]
+    anotherDf = get_related_artists(selectedID) %>%
+      select(name, images, genres, popularity) %>%
+      rename(`Recommended Artist` = 1, 
+             Image = 2, 
+             Genres = 3, 
+             Popularity = 4) %>%
+      # keeping only the images with a size of 160
+      unnest(cols = c(Image))
+    anotherDf = anotherDf[anotherDf$height == 160,] %>%
+      select(-c(height, width))
+    anotherDf$`Recommended Artist` = paste0("<strong>", anotherDf$`Recommended Artist`, "</strong>")
+    anotherDf$url = paste0('<img src="', anotherDf$url, '"/img height=80 width = 80>')
+    anotherDf
+  })
+  printTopArt = eventReactive(input$recArtsButton, {
+    HTML(paste0("<h3><strong>Artists similar to ", input$exploreArt, "</strong></h3>"))
+  })
+  output$selectedTopArt = renderUI({
+    printTopArt()
+  })
+  output$recArtsTable = renderDataTable({
+    recArtists() %>%
+      datatable(escape = F)
+  })
   # Panel 3 - Top Tracks
-  topTracks = reactive({
+  topTracks = eventReactive(input$generateTracks, {
     tracks = get_my_top_artists_or_tracks(type = "tracks", 
                                           limit = 50, 
                                           time_range = input$tracksTime) %>% 
