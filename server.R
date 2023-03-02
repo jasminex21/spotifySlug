@@ -13,11 +13,18 @@ server = function(input, output, session) {
     req(input$secret)
     auth(input$authID, input$secret)
   })
+  loadMessage = eventReactive(input$authButton, {
+    "Authenticating...please wait :)"
+  })
+  output$loadingMessage = renderText({
+    loadMessage()
+  })
   output$validate_message = renderText({ 
     validate()
   })
   # Panel 2 - Top Artists
   topArtists = eventReactive(input$generateArts, {
+    shinyjs::hide("defaultTextArts")
     # obtaining top artists and placing them into a tibble
     artists = get_my_top_artists_or_tracks(type = "artists", 
                                            limit = 50, 
@@ -43,6 +50,9 @@ server = function(input, output, session) {
     #                   choices = tops, # removing HTML tags 
     #                   selected = tops[1])
     artists
+  })
+  output$defaultTextArts = renderUI({
+    HTML(paste0("</br>" ,strong('Click the "Load" button to view your listening data!')))
   })
   output$artistsTable = renderDataTable({
     topArtists()[1:3] %>% 
@@ -99,6 +109,7 @@ server = function(input, output, session) {
   })
   # Panel 3 - Top Tracks
   topTracks = eventReactive(input$generateTracks, {
+    shinyjs::hide("defaultTextTracks")
     tracks = get_my_top_artists_or_tracks(type = "tracks", 
                                           limit = 50, 
                                           time_range = input$tracksTime) %>% 
@@ -107,7 +118,7 @@ server = function(input, output, session) {
       unnest(cols = c(album.images))
     tracks = tracks[tracks$height == 64,] %>%
       select(-c(height, width)) 
-    tracks$url = paste0('<img src="', tracks$url, '"/img>')
+    tracks$url = paste0('<img src="', tracks$url, '"/img height=80 width = 80>')
     tracks$name = paste0("<strong>", tracks$name, "</strong>")
     for (i in 1:nrow(tracks)) {
       tracks$artists[i] = tracks$artists[[i]][3][1,]
@@ -121,6 +132,9 @@ server = function(input, output, session) {
              `Album Release Date` = 5, 
              Popularity = 6)
     tracks
+  })
+  output$defaultTextTracks = renderUI({
+    HTML(paste0("</br>" ,strong('Click the "Load" button to view your listening data!')))
   })
   output$tracksTable = renderDataTable({
     topTracks() %>%
@@ -149,6 +163,38 @@ server = function(input, output, session) {
       coord_flip() + 
       theme_classic()
   })
+  output$yearsAnnotate = renderUI({
+    yearsData = as.numeric(substr(topTracks()$`Album Release Date`, 1, 4))
+    yearsTab = table(yearsData)
+    favYear = names(yearsTab)[which.max(yearsTab)]
+    if (favYear <= 2010) {
+      yearStatement = "your age is showing..."
+    }
+    else if (favYear <= 2019) {
+      yearsStatement = "a transformative year of music."
+    }
+    else {
+      yearsStatement = "your taste is pretty up to date!"
+    }
+    HTML(paste0("The largest proportion of your favorite tracks are from ", 
+                strong(favYear), " - ", yearsStatement))
+  })
+  output$yearsMinMax = renderUI({
+    allDates = as_date(topTracks()$`Album Release Date`)
+    minYear = min(allDates, na.rm = T)
+    minTrackDf = topTracks() %>% 
+      filter(`Album Release Date` == minYear)
+    minTrack = minTrackDf$Track[1]
+    minPhoto = minTrackDf$`Album Art`[1]
+    maxYear = max(allDates, na.rm = T)
+    maxTrackDf = topTracks() %>%
+      filter(`Album Release Date` == maxYear)
+    maxTrack = maxTrackDf$Track[1]
+    maxPhoto = maxTrackDf$`Album Art`[1]
+    daysDiff = gsub( "d.*$", "", days(maxYear - minYear))
+    HTML(paste0("Your oldest favorite track is <strong>", minTrack, "</strong>, released on ", strong(minYear), "</br></br><center>", minPhoto, "</center></br></br>", 
+                "Your most recent favorite track is ", maxTrack, ", released on ", strong(maxYear), "</br></br><center>", maxPhoto, "</center></br>Your taste spans ", strong(daysDiff), " days!"))
+  })
   output$trackAnnotate = renderUI ({
     popMean = mean(topTracks()$Popularity, na.rm = T)
     if (popMean > 50) {
@@ -159,6 +205,30 @@ server = function(input, output, session) {
     }
     HTML(paste0("Your top tracks have an average popularity rating of ", 
                 strong(popMean), " - ", statement))
+  })
+  output$popMinMax = renderUI({
+    allPops = as.numeric(topTracks()$Popularity)
+    minPop = min(allPops, na.rm = T)
+    maxPop = max(allPops, na.rm = T)
+    minPopTrack = topTracks()$Track[topTracks()$Popularity == minPop][1]
+    minPopPhoto = topTracks()$`Album Art`[topTracks()$Popularity == minPop][1]
+    maxPopTrack = topTracks()$Track[topTracks()$Popularity == maxPop][1]
+    maxPopPhoto = topTracks()$`Album Art`[topTracks()$Popularity == maxPop][1]
+    HTML(paste0("Your most obscure track is ", minPopTrack, ", with a popularity rating of ", strong(minPop), "</br></br><center>", minPopPhoto, "</center></br></br>",
+                "Your most mainstream track is ", maxPopTrack, ", with a popularity rating of ", strong(maxPop), "</br></br><center>", maxPopPhoto, "</center>"))
+  })
+  output$favoriteAlbum = renderUI({
+    uniqueCount = length(unique(topTracks()$Album))
+    albTab = table(topTracks()$Album)
+    favAlbum = names(albTab)[which.max(albTab)]
+    favAlbImage = topTracks()$`Album Art`[topTracks()$Album == favAlbum][1]
+    filteredDf = topTracks() %>%
+      filter(Album != favAlbum)
+    anotherTab = table(filteredDf$Album)
+    secondFavAlbum = names(anotherTab)[which.max(anotherTab)]
+    secFavAlbImage = filteredDf$`Album Art`[filteredDf$Album == secondFavAlbum][1]
+    HTML(paste0("A total of ", strong(uniqueCount), " different albums are represented across your top tracks. ", "</br></br>Of these, your favorite album is ", strong(favAlbum), ", which appears ", 
+                strong(max(albTab)), " times", "</br></br><center>", favAlbImage, "</center></br></br>Your second favorite album is ", strong(secondFavAlbum), ", which appears ", strong(max(anotherTab)), " times", "</br></br><center>", secFavAlbImage, "</center>"))
   })
   output$trackPops = renderPlot({
     ggplot(topTracks()) + 
