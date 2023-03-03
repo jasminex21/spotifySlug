@@ -11,6 +11,7 @@ library(wordcloud2)
 library(shinycustomloader)
 library(httr)
 library(plotly)
+library(lubridate)
 
 # Setting up Spotify client ID and client secret
 auth = function(id, secret) {
