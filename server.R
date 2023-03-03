@@ -13,12 +13,6 @@ server = function(input, output, session) {
     req(input$secret)
     auth(input$authID, input$secret)
   })
-  loadMessage = eventReactive(input$authButton, {
-    "Authenticating...please wait :)"
-  })
-  output$loadingMessage = renderText({
-    loadMessage()
-  })
   output$validate_message = renderText({ 
     validate()
   })
@@ -52,7 +46,8 @@ server = function(input, output, session) {
     artists
   })
   output$defaultTextArts = renderUI({
-    HTML(paste0("</br>" ,strong('Click the "Load" button to view your listening data!')))
+    HTML(paste0("</br>", div(strong('Click the "Load" button to view your listening data!'), 
+                             style = "font-size: larger;")))
   })
   output$artistsTable = renderDataTable({
     topArtists()[1:3] %>% 
@@ -134,24 +129,47 @@ server = function(input, output, session) {
     tracks
   })
   output$defaultTextTracks = renderUI({
-    HTML(paste0("</br>" ,strong('Click the "Load" button to view your listening data!')))
+    HTML(paste0("</br>", div(strong('Click the "Load" button to view your listening data!'), 
+                             style = "font-size: larger;")))
   })
   output$tracksTable = renderDataTable({
     topTracks() %>%
       select(-c(id)) %>%
       datatable(escape = F)
   })
-  output$pieTable = renderPlot({
-    topArts = topTracks() %>% 
+  output$pieTable = renderPlotly({
+    # topArts = topTracks() %>% 
+    #   group_by(Artist) %>%
+    #   summarise(Count = n(), 
+    #             Proportion = n()/nrow(topTracks())) %>%
+    #   mutate(Percentage = Proportion * 100) %>%
+    #   arrange(desc(Proportion))
+    # THRESHOLD = 3
+    # belowFive = sum(topArts$Percentage[topArts$Percentage < THRESHOLD])
+    # pie(x = c(topArts$Percentage[topArts$Percentage >= THRESHOLD], belowFive), 
+    #     labels = c(topArts$Artist[topArts$Percentage >= THRESHOLD], "Other"), 
+    #     col = brewer.pal(n = 9, name = "Greens"))
+    forDonut = topTracks() %>%
       group_by(Artist) %>%
-      summarise(Count = n(), 
-                Proportion = n()/nrow(topTracks())) %>%
-      mutate(Percentage = Proportion * 100) %>%
-      arrange(desc(Proportion))
-    belowFive = sum(topArts$Percentage[topArts$Percentage < 5])
-    pie(x = c(topArts$Percentage[topArts$Percentage >= 5], belowFive), 
-        labels = c(topArts$Artist[topArts$Percentage >= 5], "Other"), 
-        col = brewer.pal(n = 9, name = "Greens"))
+      summarise(Count = n())
+    colVec = rep_len(c("#006400", "#008000", "#228B22", "#32CD32", "#afd69b"), length(unique(forDonut$Artist)))
+    donut = forDonut %>%
+      plot_ly(labels = ~Artist, values = ~Count, 
+              marker = list(colors = colVec, 
+                            line = list(color= "#000000", 
+                                        width = 1)), 
+              textposition = "inside", 
+              textinfo = "label+percent", 
+              showlegend = F, 
+              hoverinfo = "label+text", 
+              text = ~paste(Count, "appearances"), 
+              insidetextfont = list(color = "#000000"), 
+              texttemplate = '<b>%{label}</br></br>%{percent}</b>') %>%
+      add_pie(hole = 0.2) %>%
+      layout(plot_bgcolor  = "rgba(0, 0, 0, 0)",
+             paper_bgcolor = "rgba(0, 0, 0, 0)",
+             fig_bgcolor   = "rgba(0, 0, 0, 0)")
+    donut
   })
   output$trackYears = renderPlot({
     ggplot(topTracks()) + 
