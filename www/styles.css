@@ -57,3 +57,7 @@ strong {
 p {
   font-size: 15px;
 }
+
+.js-plotly-plot .plotly .user-select-none {
+    margin-left: -35px;
+}
