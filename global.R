@@ -10,6 +10,7 @@ library(RColorBrewer)
 library(wordcloud2)
 library(shinycustomloader)
 library(httr)
+library(plotly)
 
 # Setting up Spotify client ID and client secret
 auth = function(id, secret) {
