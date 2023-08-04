@@ -29,6 +29,6 @@ Your Top Artists              |  Artists for You               |
 ![image](https://user-images.githubusercontent.com/109494334/222799730-2924f07b-b1c5-4706-be4e-e0d7f49d58ef.png) |  ![image](https://user-images.githubusercontent.com/109494334/222799828-11ecda95-c934-4b2c-9cd9-0ef15fef43e8.png) | 
 
 ### The "Top Tracks" Tab
-your Top Tracks             |  You Stats              |  Tracks for you          |
+Your Top Tracks             |  Your Stats              |  Tracks for you          |
 :-------------------------:|:-------------------------:|:-------------------------:|
 ![image](https://user-images.githubusercontent.com/109494334/222800347-7ffcbdaf-7cad-4b82-8d5c-596db9182c59.png) |  ![image](https://user-images.githubusercontent.com/109494334/222800496-f9caedae-806b-4a5e-9640-90d391fb0f0d.png) |  ![image](https://user-images.githubusercontent.com/109494334/222800574-66def351-57b4-41a0-a16a-f55cdcd8549b.png)
